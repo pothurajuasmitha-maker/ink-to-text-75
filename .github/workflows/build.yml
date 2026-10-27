@@ -1,0 +1,42 @@
+name: Build WebView APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Install Cordova and Build APK
+      run: |
+        npm install -g cordova
+        cordova create myApp com.teacher.app TeacherApp
+        cd myApp
+        cordova platform add android
+        # HTML ఫైళ్లను కాపీ చేయడం
+        cp -r ../* www/ 2>/dev/null || true
+        cordova build android --debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Teacher-App-APK
+        path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
